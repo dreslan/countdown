@@ -196,15 +196,15 @@ private fun WidgetContent(
                 }
 
                 // Right: action buttons
-                Spacer(GlanceModifier.width(8.dp))
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Spacer(GlanceModifier.width(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Play button — opens YouTube directly
                     if (videoUrl != null) {
                         Box(
                             modifier = GlanceModifier
-                                .size(56.dp)
+                                .size(48.dp)
                                 .clickable(
                                     actionRunCallback<PlayVideoAction>(
                                         androidx.glance.action.actionParametersOf(
@@ -218,7 +218,7 @@ private fun WidgetContent(
                                 text = "\u25B6",
                                 style = TextStyle(
                                     color = ColorProvider(playColor),
-                                    fontSize = 32.sp
+                                    fontSize = 28.sp
                                 )
                             )
                         }
