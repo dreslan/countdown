@@ -88,7 +88,7 @@ class CountdownWidgetSmall : GlanceAppWidget() {
                     coarseCountdown = coarseText,
                     targetDate = formattedDate,
                     theme = countdown.theme,
-                    hasVideo = countdown.videoUrl != null,
+                    videoUrl = countdown.videoUrl,
                     bgBitmap = bgBitmap?.let { ImageProvider(it) },
                     progress = progress
                 )
@@ -103,7 +103,7 @@ private fun WidgetContent(
     coarseCountdown: String,
     targetDate: String,
     theme: CountdownTheme,
-    hasVideo: Boolean,
+    videoUrl: String?,
     bgBitmap: ImageProvider?,
     progress: Float?
 ) {
@@ -131,7 +131,6 @@ private fun WidgetContent(
         CountdownTheme.CLEAN -> FontWeight.Normal
         CountdownTheme.MEDIEVAL -> FontWeight.Bold
     }
-
     val progressColor = when (theme) {
         CountdownTheme.CLEAN -> Color(0xFF8B949E)
         CountdownTheme.MEDIEVAL -> Color(0xFFD4A855)
@@ -151,20 +150,12 @@ private fun WidgetContent(
                 modifier = GlanceModifier.fillMaxSize()
             )
         } else {
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxSize()
-                    .background(bgColor)
-            ) {}
+            Box(modifier = GlanceModifier.fillMaxSize().background(bgColor)) {}
         }
 
         // Layer 2: Dark scrim overlay (only when image is present)
         if (bgBitmap != null) {
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxSize()
-                    .background(Color(0xAA000000))
-            ) {}
+            Box(modifier = GlanceModifier.fillMaxSize().background(Color(0xAA000000))) {}
         }
 
         // Layer 3: Content
@@ -178,8 +169,8 @@ private fun WidgetContent(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Left: text content
                 Column(modifier = GlanceModifier.defaultWeight()) {
-                    // Line 1: "Countdown to <TITLE>"
                     Text(
                         text = "Countdown to $title",
                         style = TextStyle(
@@ -190,7 +181,6 @@ private fun WidgetContent(
                         maxLines = 1
                     )
                     Spacer(GlanceModifier.height(4.dp))
-                    // Line 2: coarse countdown + date
                     Text(
                         text = "$coarseCountdown \u00B7 $targetDate",
                         style = TextStyle(
@@ -201,38 +191,48 @@ private fun WidgetContent(
                         ),
                         maxLines = 1
                     )
-                    Spacer(GlanceModifier.height(2.dp))
-                    // Line 3: Refresh action + open app hint
-                    Row(
-                        modifier = GlanceModifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "\u21BB Tap to refresh",
-                            style = TextStyle(
-                                color = ColorProvider(labelColor),
-                                fontSize = 10.sp,
-                                fontFamily = fontFamily
-                            ),
-                            maxLines = 1,
-                            modifier = GlanceModifier.clickable(
-                                actionRunCallback<RefreshAction>()
-                            )
-                        )
-                    }
                 }
 
-                if (hasVideo) {
-                    Spacer(GlanceModifier.width(8.dp))
+                // Right: action buttons
+                Spacer(GlanceModifier.width(8.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Play button — opens YouTube directly
+                    if (videoUrl != null) {
+                        Box(
+                            modifier = GlanceModifier
+                                .size(44.dp)
+                                .clickable(
+                                    actionRunCallback<PlayVideoAction>(
+                                        androidx.glance.action.actionParametersOf(
+                                            PlayVideoAction.VIDEO_URL_KEY to videoUrl
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "\u25B6",
+                                style = TextStyle(
+                                    color = ColorProvider(playColor),
+                                    fontSize = 26.sp
+                                )
+                            )
+                        }
+                    }
+                    // Refresh button
                     Box(
-                        modifier = GlanceModifier.size(36.dp),
+                        modifier = GlanceModifier
+                            .size(28.dp)
+                            .clickable(actionRunCallback<RefreshAction>()),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "\u25B6",
+                            text = "\u21BB",
                             style = TextStyle(
-                                color = ColorProvider(playColor),
-                                fontSize = 20.sp
+                                color = ColorProvider(labelColor),
+                                fontSize = 16.sp
                             )
                         )
                     }
