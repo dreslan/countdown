@@ -26,10 +26,11 @@ class ThemeConverter {
     fun toTheme(name: String): CountdownTheme = CountdownTheme.valueOf(name)
 }
 
-@Database(entities = [Countdown::class], version = 4, exportSchema = false)
+@Database(entities = [Countdown::class, Note::class], version = 5, exportSchema = false)
 @TypeConverters(InstantConverter::class, ThemeConverter::class)
 abstract class CountdownDatabase : RoomDatabase() {
     abstract fun countdownDao(): CountdownDao
+    abstract fun noteDao(): NoteDao
 
     companion object {
         @Volatile
@@ -53,13 +54,29 @@ abstract class CountdownDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE notes (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        countdownId INTEGER NOT NULL,
+                        text TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL,
+                        FOREIGN KEY (countdownId) REFERENCES countdowns(id) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX index_notes_countdownId ON notes(countdownId)")
+            }
+        }
+
         fun getInstance(context: Context): CountdownDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     CountdownDatabase::class.java,
                     "countdown_database"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build().also { INSTANCE = it }
             }
         }
     }
