@@ -101,8 +101,10 @@ fun CountdownListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(countdowns, key = { it.id }) { countdown ->
+                    val noteCount by viewModel.getNoteCount(countdown.id).collectAsState(initial = 0)
                     CountdownCard(
                         countdown = countdown,
+                        noteCount = noteCount,
                         onClick = { onCountdownClick(countdown.id) }
                     )
                 }
@@ -127,7 +129,7 @@ fun CountdownListScreen(
 }
 
 @Composable
-private fun CountdownCard(countdown: Countdown, onClick: () -> Unit) {
+private fun CountdownCard(countdown: Countdown, noteCount: Int, onClick: () -> Unit) {
     val bgBrush = when (countdown.theme) {
         CountdownTheme.CLEAN -> Brush.linearGradient(
             listOf(CleanColors.backgroundMid, CleanColors.backgroundEnd)
@@ -194,6 +196,14 @@ private fun CountdownCard(countdown: Countdown, onClick: () -> Unit) {
                             .padding(top = 8.dp),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surface
+                    )
+                }
+                if (countdown.showProgress && noteCount > 0) {
+                    Text(
+                        text = "$noteCount note${if (noteCount != 1) "s" else ""}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
