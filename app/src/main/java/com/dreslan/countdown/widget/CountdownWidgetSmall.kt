@@ -204,7 +204,7 @@ private fun WidgetContent(
                     if (videoUrl != null) {
                         Box(
                             modifier = GlanceModifier
-                                .size(44.dp)
+                                .size(56.dp)
                                 .clickable(
                                     actionRunCallback<PlayVideoAction>(
                                         androidx.glance.action.actionParametersOf(
@@ -218,7 +218,7 @@ private fun WidgetContent(
                                 text = "\u25B6",
                                 style = TextStyle(
                                     color = ColorProvider(playColor),
-                                    fontSize = 26.sp
+                                    fontSize = 32.sp
                                 )
                             )
                         }
@@ -226,7 +226,7 @@ private fun WidgetContent(
                     // Refresh button
                     Box(
                         modifier = GlanceModifier
-                            .size(28.dp)
+                            .size(40.dp)
                             .clickable(actionRunCallback<RefreshAction>()),
                         contentAlignment = Alignment.Center
                     ) {
@@ -234,7 +234,7 @@ private fun WidgetContent(
                             text = "\u21BB",
                             style = TextStyle(
                                 color = ColorProvider(labelColor),
-                                fontSize = 16.sp
+                                fontSize = 22.sp
                             )
                         )
                     }
