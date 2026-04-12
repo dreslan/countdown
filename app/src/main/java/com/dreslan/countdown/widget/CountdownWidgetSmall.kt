@@ -79,8 +79,9 @@ class CountdownWidgetSmall : GlanceAppWidget() {
                 }
 
                 val progress = if (countdown.showProgress) {
-                    val total = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
-                    val elapsed = now.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                    val origin = countdown.startDate ?: countdown.createdAt
+                    val total = countdown.targetDateTime.toEpochMilli() - origin.toEpochMilli()
+                    val elapsed = now.toEpochMilli() - origin.toEpochMilli()
                     if (total > 0) (elapsed.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 1f
                 } else null
 

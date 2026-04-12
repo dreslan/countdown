@@ -24,6 +24,8 @@ data class EditState(
     val zeroMessage: String = "",
     val videoUrl: String = "",
     val showProgress: Boolean = false,
+    val startDate: LocalDate = LocalDate.now(),
+    val startTime: LocalTime = LocalTime.now(),
     val backgroundImagePath: String? = null,
     val isEditing: Boolean = false,
     val editId: Long = 0,
@@ -42,6 +44,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
             val countdown = dao.getById(id) ?: return@launch
             val zone = ZoneId.of(countdown.timeZone)
             val zdt = countdown.targetDateTime.atZone(zone)
+            val startZdt = (countdown.startDate ?: countdown.createdAt).atZone(zone)
             _state.value = EditState(
                 title = countdown.title,
                 date = zdt.toLocalDate(),
@@ -51,6 +54,8 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                 zeroMessage = countdown.zeroMessage ?: "",
                 videoUrl = countdown.videoUrl ?: "",
                 showProgress = countdown.showProgress,
+                startDate = startZdt.toLocalDate(),
+                startTime = startZdt.toLocalTime(),
                 backgroundImagePath = countdown.backgroundImagePath,
                 isEditing = true,
                 editId = countdown.id
@@ -90,6 +95,14 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
         _state.value = _state.value.copy(showProgress = show)
     }
 
+    fun updateStartDate(date: LocalDate) {
+        _state.value = _state.value.copy(startDate = date)
+    }
+
+    fun updateStartTime(time: LocalTime) {
+        _state.value = _state.value.copy(startTime = time)
+    }
+
     fun updateBackgroundImage(path: String?) {
         _state.value = _state.value.copy(backgroundImagePath = path)
     }
@@ -116,6 +129,11 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
             .atZone(s.timeZone)
             .toInstant()
 
+        val startInstant = s.startDate
+            .atTime(s.startTime)
+            .atZone(s.timeZone)
+            .toInstant()
+
         viewModelScope.launch {
             if (s.isEditing) {
                 val existing = dao.getById(s.editId) ?: return@launch
@@ -128,6 +146,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                         zeroMessage = s.zeroMessage.trim().ifBlank { null },
                         videoUrl = normalizedVideoUrl,
                         showProgress = s.showProgress,
+                        startDate = startInstant,
                         backgroundImagePath = s.backgroundImagePath
                     )
                 )
@@ -141,6 +160,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                         zeroMessage = s.zeroMessage.trim().ifBlank { null },
                         videoUrl = normalizedVideoUrl,
                         showProgress = s.showProgress,
+                        startDate = startInstant,
                         backgroundImagePath = s.backgroundImagePath
                     )
                 )

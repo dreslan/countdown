@@ -211,8 +211,9 @@ fun CountdownDetailScreen(
                     )
 
                     if (countdown.showProgress) {
-                        val totalDuration = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
-                        val elapsed = Instant.now().toEpochMilli() - countdown.createdAt.toEpochMilli()
+                        val origin = countdown.startDate ?: countdown.createdAt
+                        val totalDuration = countdown.targetDateTime.toEpochMilli() - origin.toEpochMilli()
+                        val elapsed = Instant.now().toEpochMilli() - origin.toEpochMilli()
                         val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
                         LinearProgressIndicator(
                             progress = { progress },

@@ -98,6 +98,8 @@ fun EditCountdownScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
 
     val dateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
     val timeFormatter = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
@@ -288,6 +290,41 @@ fun EditCountdownScreen(
                 )
             }
 
+            // Start date + time (visible when progress bar is enabled)
+            if (state.showProgress) {
+                Column {
+                    Text(
+                        text = "Start Date",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = CleanColors.labelText
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { showStartDatePicker = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = CleanColors.countdownText
+                            )
+                        ) {
+                            Text(state.startDate.format(dateFormatter))
+                        }
+                        OutlinedButton(
+                            onClick = { showStartTimePicker = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = CleanColors.countdownText
+                            )
+                        ) {
+                            Text(state.startTime.format(timeFormatter))
+                        }
+                    }
+                }
+            }
+
             // Background image
             Column {
                 Text(
@@ -410,6 +447,69 @@ fun EditCountdownScreen(
             },
             text = {
                 TimePicker(state = timePickerState)
+            },
+            containerColor = CleanColors.backgroundMid
+        )
+    }
+
+    // Start Date Picker Dialog
+    if (showStartDatePicker) {
+        val epochMillis = state.startDate
+            .atStartOfDay(ZoneId.of("UTC"))
+            .toInstant()
+            .toEpochMilli()
+        val startDatePickerState = rememberDatePickerState(initialSelectedDateMillis = epochMillis)
+
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    startDatePickerState.selectedDateMillis?.let { millis ->
+                        val selected = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.of("UTC"))
+                            .toLocalDate()
+                        viewModel.updateStartDate(selected)
+                    }
+                    showStartDatePicker = false
+                }) {
+                    Text("OK", color = CleanColors.countdownText)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker = false }) {
+                    Text("Cancel", color = CleanColors.labelText)
+                }
+            }
+        ) {
+            DatePicker(state = startDatePickerState)
+        }
+    }
+
+    // Start Time Picker Dialog
+    if (showStartTimePicker) {
+        val startTimePickerState = rememberTimePickerState(
+            initialHour = state.startTime.hour,
+            initialMinute = state.startTime.minute,
+            is24Hour = false
+        )
+
+        AlertDialog(
+            onDismissRequest = { showStartTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateStartTime(LocalTime.of(startTimePickerState.hour, startTimePickerState.minute))
+                    showStartTimePicker = false
+                }) {
+                    Text("OK", color = CleanColors.countdownText)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartTimePicker = false }) {
+                    Text("Cancel", color = CleanColors.labelText)
+                }
+            },
+            text = {
+                TimePicker(state = startTimePickerState)
             },
             containerColor = CleanColors.backgroundMid
         )

@@ -24,5 +24,7 @@ data class Countdown(
     @ColumnInfo(defaultValue = "0")
     val showProgress: Boolean = false,
     @ColumnInfo(defaultValue = "")
-    val backgroundImagePath: String? = null
+    val backgroundImagePath: String? = null,
+    @ColumnInfo(defaultValue = "NULL")
+    val startDate: Instant? = null
 )
