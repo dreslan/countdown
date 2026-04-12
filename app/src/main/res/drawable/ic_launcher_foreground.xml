@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Hourglass body -->
+    <path
+        android:fillColor="#D4A855"
+        android:pathData="M34,30 L74,30 L74,33 L56,50 L56,58 L74,75 L74,78 L34,78 L34,75 L52,58 L52,50 L34,33 Z" />
+
+    <!-- Top bar -->
+    <path
+        android:fillColor="#D4A855"
+        android:pathData="M30,27 L78,27 L78,33 L30,33 Z" />
+
+    <!-- Bottom bar -->
+    <path
+        android:fillColor="#D4A855"
+        android:pathData="M30,75 L78,75 L78,81 L30,81 Z" />
+
+    <!-- Sand in bottom half -->
+    <path
+        android:fillColor="#B8922E"
+        android:pathData="M42,75 L54,63 L66,75 Z" />
+</vector>
