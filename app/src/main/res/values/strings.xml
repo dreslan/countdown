@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Braveheart Timer</string>
+    <string name="widget_description_large">4x2 countdown widget with play button</string>
+    <string name="widget_description_small">4x1 compact countdown widget</string>
+</resources>

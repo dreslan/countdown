@@ -1,1 +1,15 @@
 .superpowers/
+
+# Gradle
+.gradle/
+build/
+app/build/
+
+# Local config
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+captures/
+.DS_Store
