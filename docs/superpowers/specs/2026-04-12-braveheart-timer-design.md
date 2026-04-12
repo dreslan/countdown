@@ -12,14 +12,14 @@ Each countdown record contains:
 |-------|------|----------|-------------|
 | id | Long (auto-generated) | Yes | Primary key |
 | title | String | Yes | Display name (e.g., "Catheter Removal") |
-| targetDateTime | Instant | Yes | Target date and time |
+| targetDateTime | Instant (stored as Long epoch millis via TypeConverter) | Yes | Target date and time |
 | timeZone | String | Yes | IANA timezone (e.g., "America/New_York") |
 | theme | Enum (CLEAN, MEDIEVAL) | Yes | Visual theme, defaults to CLEAN |
 | zeroMessage | String? | No | Message shown at zero (e.g., "FREEDOM!") |
 | videoUrl | String? | No | YouTube URL for embed |
-| createdAt | Instant | Yes | Creation timestamp |
+| createdAt | Instant (stored as Long epoch millis via TypeConverter) | Yes | Creation timestamp |
 
-Stored in a local Room database. No cloud sync.
+Stored in a local Room database. No cloud sync. Room TypeConverters map `Instant` ↔ `Long` (epoch millis).
 
 ## Themes
 
@@ -74,7 +74,10 @@ Stored in a local Room database. No cloud sync.
 - Countdown numbers replaced with:
   - Custom zero message if set (e.g., "FREEDOM!")
   - `00:00:00:00` if no message set
-- Video auto-plays on the detail screen if configured
+- Video auto-play behavior (app-side only, widgets cannot trigger playback):
+  - Auto-plays **only on the natural zero crossing** — when the detail screen is open and the countdown reaches zero in real time
+  - Does **not** auto-play when navigating to a detail screen of an already-completed countdown
+  - User can always manually play the video at any time
 - Widget shows the zero message
 
 ## Widgets
@@ -96,13 +99,17 @@ Stored in a local Room database. No cloud sync.
 
 ### Widget Configuration
 - When user adds a widget to homescreen, Android shows a configuration activity
+- `CountdownWidgetConfigActivity` is a standalone `Activity` (not a Compose nav destination) declared in `AndroidManifest.xml` with `android.appwidget.action.APPWIDGET_CONFIGURE`
 - Configuration activity shows a list of existing countdowns to choose from
+- If no countdowns exist: shows "No countdowns yet" message with a "Create One" button that deep-links into the app's create screen. Widget placement is deferred until a countdown is selected.
 - Selected countdown is bound to that widget instance
-- If the bound countdown is deleted, widget shows a "Countdown deleted" message
+- If the bound countdown is deleted, widget shows "Countdown deleted — tap to reconfigure"
 
 ### Widget Updates
-- Widgets update every minute via Glance worker
-- When countdown completes, widget transitions to zero state display
+- Per-minute updates via `ACTION_TIME_TICK` BroadcastReceiver (system broadcast fires every minute). The receiver calls `GlanceAppWidget.updateAll()` to refresh all widget instances.
+- WorkManager cannot achieve 1-minute intervals (15-minute minimum), so `ACTION_TIME_TICK` is the correct mechanism.
+- On zero crossing: the tick handler detects completion and triggers an immediate widget update to show the zero state. No stale positive counts.
+- Widget update is lightweight — reads countdown from Room, computes remaining time, re-renders.
 
 ## Tech Stack
 
@@ -144,8 +151,8 @@ app/
       widget/
         CountdownWidget.kt         # Glance widget (4x2)
         CountdownWidgetSmall.kt    # Glance widget (4x1)
-        CountdownWidgetConfig.kt   # Widget configuration activity
-        WidgetUpdateWorker.kt      # Periodic update worker
+        CountdownWidgetConfigActivity.kt  # Standalone config Activity (APPWIDGET_CONFIGURE)
+        WidgetTickReceiver.kt             # ACTION_TIME_TICK receiver, calls updateAll()
       MainActivity.kt
       CountdownApp.kt              # Application class
     res/
@@ -160,13 +167,15 @@ app/
 CountdownList → CreateCountdown
 CountdownList → CountdownDetail → EditCountdown
 Widget tap → CountdownDetail
-Widget config → CountdownList (picker mode)
+Widget config (standalone Activity) → picker list → select countdown
+Widget config (no countdowns) → "Create One" → app CreateCountdown → return to config
 ```
 
 ## Edge Cases
 
 - **Countdown deleted while widget exists**: Widget shows "Countdown deleted — tap to reconfigure"
 - **No countdowns exist**: List screen shows empty state with prompt to create first countdown
-- **Invalid video URL**: Show error toast on save, don't persist invalid URL
+- **Invalid video URL**: Validate that the URL is a recognized YouTube format (`youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`). Normalize to `youtube.com/embed/{videoId}` for WebView. Show error toast on save if URL doesn't match any recognized format; don't persist invalid URL.
 - **Timezone changes**: Countdown uses stored IANA timezone, unaffected by device timezone changes
-- **Device reboot**: Glance widgets survive reboots via AppWidgetProvider
+- **Past target dates**: Intentionally allowed. Users may want to keep completed countdowns around. Detail screen and widget show zero state immediately.
+- **Device reboot**: Glance widgets survive reboots via AppWidgetProvider. `ACTION_TIME_TICK` receiver re-registers on boot via `BOOT_COMPLETED` receiver.
