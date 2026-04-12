@@ -28,11 +28,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.graphics.BitmapFactory
 import com.dreslan.countdown.data.Countdown
 import com.dreslan.countdown.data.CountdownTheme
 import com.dreslan.countdown.ui.components.CountdownDisplay
@@ -130,41 +137,64 @@ private fun CountdownCard(countdown: Countdown, onClick: () -> Unit) {
         )
     }
 
+    val bgBitmap = countdown.backgroundImagePath?.let { path ->
+        if (path.isNotBlank()) {
+            try { BitmapFactory.decodeFile(path)?.asImageBitmap() } catch (_: Exception) { null }
+        } else null
+    }
+
     CountdownItemTheme(theme = countdown.theme) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(bgBrush)
                 .clickable(onClick = onClick)
-                .padding(20.dp)
         ) {
-            Text(
-                text = countdown.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            CountdownDisplay(
-                targetDateTime = countdown.targetDateTime,
-                zeroMessage = countdown.zeroMessage,
-                countdownStyle = MaterialTheme.typography.displayLarge.copy(
-                    fontSize = MaterialTheme.typography.displayLarge.fontSize * 0.6
-                ),
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            if (countdown.showProgress) {
-                val totalDuration = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
-                val elapsed = Instant.now().toEpochMilli() - countdown.createdAt.toEpochMilli()
-                val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surface
+            // Background image if set
+            if (bgBitmap != null) {
+                Image(
+                    bitmap = bgBitmap,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
                 )
+                // Dark scrim for readability
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color(0xAA000000))
+                )
+            }
+
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = countdown.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                CountdownDisplay(
+                    targetDateTime = countdown.targetDateTime,
+                    zeroMessage = countdown.zeroMessage,
+                    countdownStyle = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = MaterialTheme.typography.displayLarge.fontSize * 0.6
+                    ),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                if (countdown.showProgress) {
+                    val totalDuration = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                    val elapsed = Instant.now().toEpochMilli() - countdown.createdAt.toEpochMilli()
+                    val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surface
+                    )
+                }
             }
         }
     }

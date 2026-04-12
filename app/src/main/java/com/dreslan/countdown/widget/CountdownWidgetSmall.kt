@@ -74,7 +74,8 @@ class CountdownWidgetSmall : GlanceAppWidget() {
                 } else {
                     val days = duration.toDays()
                     val hours = duration.toHours() % 24
-                    "${days}d ${hours}h"
+                    val minutes = duration.toMinutes() % 60
+                    "${days}d ${hours}h ${minutes}m"
                 }
 
                 val progress = if (countdown.showProgress) {

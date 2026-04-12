@@ -47,6 +47,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import com.dreslan.countdown.data.CountdownTheme
 import com.dreslan.countdown.ui.components.CountdownDisplay
 import com.dreslan.countdown.ui.theme.CleanColors
@@ -148,12 +152,32 @@ fun CountdownDetailScreen(
             },
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
+            val bgBitmap = countdown.backgroundImagePath?.let { path ->
+                if (path.isNotBlank()) {
+                    try { BitmapFactory.decodeFile(path)?.asImageBitmap() } catch (_: Exception) { null }
+                } else null
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(backgroundBrush)
                     .padding(padding)
             ) {
+                // Background image if set
+                if (bgBitmap != null) {
+                    Image(
+                        bitmap = bgBitmap,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(Color(0xAA000000))
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
