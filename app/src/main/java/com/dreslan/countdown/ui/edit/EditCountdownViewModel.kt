@@ -23,6 +23,7 @@ data class EditState(
     val theme: CountdownTheme = CountdownTheme.CLEAN,
     val zeroMessage: String = "",
     val videoUrl: String = "",
+    val showProgress: Boolean = false,
     val isEditing: Boolean = false,
     val editId: Long = 0,
     val videoUrlError: String? = null,
@@ -48,6 +49,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                 theme = countdown.theme,
                 zeroMessage = countdown.zeroMessage ?: "",
                 videoUrl = countdown.videoUrl ?: "",
+                showProgress = countdown.showProgress,
                 isEditing = true,
                 editId = countdown.id
             )
@@ -82,6 +84,10 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
         _state.value = _state.value.copy(videoUrl = url, videoUrlError = null)
     }
 
+    fun updateShowProgress(show: Boolean) {
+        _state.value = _state.value.copy(showProgress = show)
+    }
+
     fun save() {
         val s = _state.value
         if (s.title.isBlank()) {
@@ -114,7 +120,8 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                         timeZone = s.timeZone.id,
                         theme = s.theme,
                         zeroMessage = s.zeroMessage.trim().ifBlank { null },
-                        videoUrl = normalizedVideoUrl
+                        videoUrl = normalizedVideoUrl,
+                        showProgress = s.showProgress
                     )
                 )
             } else {
@@ -125,7 +132,8 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                         timeZone = s.timeZone.id,
                         theme = s.theme,
                         zeroMessage = s.zeroMessage.trim().ifBlank { null },
-                        videoUrl = normalizedVideoUrl
+                        videoUrl = normalizedVideoUrl,
+                        showProgress = s.showProgress
                     )
                 )
             }

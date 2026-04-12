@@ -28,6 +28,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -42,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -243,6 +246,29 @@ fun EditCountdownScreen(
                     cursorColor = CleanColors.countdownText,
                 )
             )
+
+            // Show progress bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Show progress bar",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = CleanColors.countdownText
+                )
+                Switch(
+                    checked = state.showProgress,
+                    onCheckedChange = viewModel::updateShowProgress,
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = CleanColors.labelText,
+                        checkedThumbColor = CleanColors.countdownText,
+                        uncheckedTrackColor = CleanColors.backgroundMid,
+                        uncheckedThumbColor = CleanColors.unitText
+                    )
+                )
+            }
 
             // Save button
             Button(

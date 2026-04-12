@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,6 +39,7 @@ import com.dreslan.countdown.ui.components.CountdownDisplay
 import com.dreslan.countdown.ui.theme.CleanColors
 import com.dreslan.countdown.ui.theme.CountdownItemTheme
 import com.dreslan.countdown.ui.theme.MedievalColors
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,6 +152,20 @@ private fun CountdownCard(countdown: Countdown, onClick: () -> Unit) {
                 ),
                 modifier = Modifier.padding(top = 8.dp)
             )
+
+            if (countdown.showProgress) {
+                val totalDuration = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                val elapsed = Instant.now().toEpochMilli() - countdown.createdAt.toEpochMilli()
+                val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surface
+                )
+            }
         }
     }
 }

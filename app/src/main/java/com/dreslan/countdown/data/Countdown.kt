@@ -1,5 +1,6 @@
 package com.dreslan.countdown.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.Instant
@@ -19,5 +20,7 @@ data class Countdown(
     val theme: CountdownTheme = CountdownTheme.CLEAN,
     val zeroMessage: String? = null,
     val videoUrl: String? = null,
-    val createdAt: Instant = Instant.now()
+    val createdAt: Instant = Instant.now(),
+    @ColumnInfo(defaultValue = "0")
+    val showProgress: Boolean = false
 )

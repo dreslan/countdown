@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import java.time.Instant
 
 class InstantConverter {
@@ -24,7 +26,7 @@ class ThemeConverter {
     fun toTheme(name: String): CountdownTheme = CountdownTheme.valueOf(name)
 }
 
-@Database(entities = [Countdown::class], version = 1, exportSchema = false)
+@Database(entities = [Countdown::class], version = 2, exportSchema = false)
 @TypeConverters(InstantConverter::class, ThemeConverter::class)
 abstract class CountdownDatabase : RoomDatabase() {
     abstract fun countdownDao(): CountdownDao
@@ -33,13 +35,19 @@ abstract class CountdownDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: CountdownDatabase? = null
 
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE countdowns ADD COLUMN showProgress INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getInstance(context: Context): CountdownDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     CountdownDatabase::class.java,
                     "countdown_database"
-                ).build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_1_2).build().also { INSTANCE = it }
             }
         }
     }
