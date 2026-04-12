@@ -1,12 +1,14 @@
 # Braveheart Timer — Claude Instructions
 
-## Build
+## Build & Deploy
 
 ```bash
-JAVA_HOME=/usr/local/opt/openjdk@17 ./gradlew assembleDebug
+uv run deploy.py push         # build + install (auto-pairs/connects if needed)
+uv run deploy.py push --clean # clean build + install
+uv run deploy.py build        # build APK only
 ```
 
-Or use the deploy CLI: `uv run deploy.py build`
+Or directly: `JAVA_HOME=/usr/local/opt/openjdk@17 ./gradlew assembleDebug`
 
 ## Test
 

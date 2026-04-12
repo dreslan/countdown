@@ -35,19 +35,25 @@ A multi-countdown Android app with themed homescreen widgets. Create countdowns 
 ### Build & Deploy
 
 ```bash
-# Build
+# Build + install on device (handles pairing/connecting automatically)
+uv run deploy.py push
+
+# Build + install with clean build
+uv run deploy.py push --clean
+
+# Build APK only
 uv run deploy.py build
 
 # Run tests
 uv run deploy.py test
 
-# Connect to your phone (wireless debugging)
-uv run deploy.py pair
-uv run deploy.py connect
-
-# Build + install on device
-uv run deploy.py push
+# Manual connection (if needed)
+uv run deploy.py pair           # pair with a new device
+uv run deploy.py connect        # connect to a paired device
+uv run deploy.py devices        # list connected devices
 ```
+
+`push` is all-in-one: if no device is connected it walks you through wireless debugging setup, if multiple devices are connected it lets you pick one, then builds and installs.
 
 ### Docker
 
