@@ -12,6 +12,7 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.provideContent
@@ -201,16 +202,24 @@ private fun WidgetContent(
                         maxLines = 1
                     )
                     Spacer(GlanceModifier.height(2.dp))
-                    // Line 3: "Tap to view live"
-                    Text(
-                        text = "Tap to view live",
-                        style = TextStyle(
-                            color = ColorProvider(labelColor),
-                            fontSize = 10.sp,
-                            fontFamily = fontFamily
-                        ),
-                        maxLines = 1
-                    )
+                    // Line 3: Refresh action + open app hint
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "\u21BB Tap to refresh",
+                            style = TextStyle(
+                                color = ColorProvider(labelColor),
+                                fontSize = 10.sp,
+                                fontFamily = fontFamily
+                            ),
+                            maxLines = 1,
+                            modifier = GlanceModifier.clickable(
+                                actionRunCallback<RefreshAction>()
+                            )
+                        )
+                    }
                 }
 
                 if (hasVideo) {
