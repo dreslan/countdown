@@ -31,25 +31,23 @@ def cli():
 
 
 @cli.command()
-@click.argument("addr", metavar="IP:PORT")
-def pair(addr: str):
-    """Pair with a device via wireless debugging.
-
-    Get the IP:PORT and pairing code from:
-    Settings > Developer Options > Wireless Debugging > Pair device with pairing code
-    """
+@click.argument("addr", metavar="IP:PORT", required=False)
+def pair(addr: str | None):
+    """Pair with a device via wireless debugging."""
+    if not addr:
+        click.echo("Open: Settings > Developer Options > Wireless Debugging > Pair device with pairing code")
+        addr = click.prompt("IP:PORT shown on the pairing screen")
     click.echo(f"Pairing with {addr}...")
     run(f"adb pair {addr}")
 
 
 @cli.command()
-@click.argument("addr", metavar="IP:PORT")
-def connect(addr: str):
-    """Connect to a paired device.
-
-    Use the IP:PORT shown on the main Wireless Debugging screen
-    (different from the pairing port).
-    """
+@click.argument("addr", metavar="IP:PORT", required=False)
+def connect(addr: str | None):
+    """Connect to a paired device."""
+    if not addr:
+        click.echo("Open: Settings > Developer Options > Wireless Debugging")
+        addr = click.prompt("IP:PORT shown on the main wireless debugging screen")
     click.echo(f"Connecting to {addr}...")
     run(f"adb connect {addr}")
 
