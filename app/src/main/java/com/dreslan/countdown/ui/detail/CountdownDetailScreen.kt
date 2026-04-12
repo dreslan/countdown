@@ -214,7 +214,20 @@ private fun YoutubePlayer(
     autoPlay: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val url = if (autoPlay) "$embedUrl?autoplay=1" else embedUrl
+    val autoplayParam = if (autoPlay) "?autoplay=1" else ""
+    val html = """
+        <html>
+        <body style="margin:0;padding:0;background:#000;">
+        <iframe
+            width="100%%" height="100%%"
+            src="${embedUrl}${autoplayParam}"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+        </body>
+        </html>
+    """.trimIndent()
 
     Box(
         modifier = modifier
@@ -224,26 +237,19 @@ private fun YoutubePlayer(
         AndroidView(
             factory = { context ->
                 WebView(context).apply {
-                    webViewClient = object : WebViewClient() {
-                        override fun shouldOverrideUrlLoading(
-                            view: WebView?,
-                            request: android.webkit.WebResourceRequest?
-                        ): Boolean {
-                            val requestUrl = request?.url?.toString() ?: return false
-                            // Allow YouTube embed URLs, block everything else
-                            if (requestUrl.contains("youtube.com") || requestUrl.contains("youtube-nocookie.com")) {
-                                return false
-                            }
-                            // Open external URLs in system browser
-                            context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, request.url))
-                            return true
-                        }
-                    }
+                    webViewClient = WebViewClient()
                     webChromeClient = WebChromeClient()
                     settings.javaScriptEnabled = true
                     settings.mediaPlaybackRequiresUserGesture = !autoPlay
+                    settings.domStorageEnabled = true
                     settings.cacheMode = WebSettings.LOAD_DEFAULT
-                    loadUrl(url)
+                    loadDataWithBaseURL(
+                        "https://www.youtube.com",
+                        html,
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
                 }
             },
             modifier = Modifier.fillMaxSize()

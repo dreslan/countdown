@@ -30,7 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.lifecycleScope
 import com.dreslan.countdown.MainActivity
 import com.dreslan.countdown.data.Countdown
@@ -76,16 +76,10 @@ class CountdownWidgetConfigActivity : ComponentActivity() {
         saveWidgetCountdownId(this, appWidgetId, countdownId)
 
         lifecycleScope.launch {
-            val manager = GlanceAppWidgetManager(this@CountdownWidgetConfigActivity)
-            try {
-                val glanceId = manager.getGlanceIdBy(appWidgetId)
-                CountdownWidget().update(this@CountdownWidgetConfigActivity, glanceId)
-            } catch (_: Exception) {
-                try {
-                    val glanceId = manager.getGlanceIdBy(appWidgetId)
-                    CountdownWidgetSmall().update(this@CountdownWidgetConfigActivity, glanceId)
-                } catch (_: Exception) { }
-            }
+            // Update all widget instances — simpler and more reliable than
+            // trying to determine which widget type this appWidgetId belongs to
+            CountdownWidget().updateAll(this@CountdownWidgetConfigActivity)
+            CountdownWidgetSmall().updateAll(this@CountdownWidgetConfigActivity)
 
             val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             setResult(RESULT_OK, result)
