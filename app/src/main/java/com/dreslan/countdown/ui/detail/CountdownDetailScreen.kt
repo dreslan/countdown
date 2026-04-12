@@ -1,10 +1,9 @@
 package com.dreslan.countdown.ui.detail
 
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +11,19 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,15 +41,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dreslan.countdown.data.CountdownTheme
 import com.dreslan.countdown.ui.components.CountdownDisplay
 import com.dreslan.countdown.ui.theme.CleanColors
 import com.dreslan.countdown.ui.theme.CountdownItemTheme
 import com.dreslan.countdown.ui.theme.MedievalColors
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +67,6 @@ fun CountdownDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var shouldAutoPlay by remember { mutableStateOf(autoPlayVideo) }
 
     LaunchedEffect(countdownId) {
         viewModel.loadCountdown(countdownId)
@@ -162,20 +169,39 @@ fun CountdownDetailScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    val zone = ZoneId.of(countdown.timeZone)
+                    val zdt = countdown.targetDateTime.atZone(zone)
+                    val dateFormatter = DateTimeFormatter.ofPattern("MMMM d, h:mm a")
+                    Text(
+                        text = zdt.format(dateFormatter),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                    )
+
                     CountdownDisplay(
                         targetDateTime = countdown.targetDateTime,
                         zeroMessage = countdown.zeroMessage,
                         countdownStyle = MaterialTheme.typography.displayLarge,
                         labelStyle = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth(),
-                        onZeroCrossing = { shouldAutoPlay = true }
+                        modifier = Modifier.fillMaxWidth()
                     )
+
+                    if (countdown.showProgress) {
+                        val totalDuration = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                        val elapsed = Instant.now().toEpochMilli() - countdown.createdAt.toEpochMilli()
+                        val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surface
+                        )
+                    }
 
                     val videoUrl = countdown.videoUrl
                     if (!videoUrl.isNullOrBlank()) {
-                        YoutubePlayer(
+                        VideoPlayButton(
                             embedUrl = videoUrl,
-                            autoPlay = shouldAutoPlay,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -209,50 +235,41 @@ fun CountdownDetailScreen(
 }
 
 @Composable
-private fun YoutubePlayer(
+private fun VideoPlayButton(
     embedUrl: String,
-    autoPlay: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val autoplayParam = if (autoPlay) "?autoplay=1" else ""
-    val html = """
-        <html>
-        <body style="margin:0;padding:0;background:#000;">
-        <iframe
-            width="100%%" height="100%%"
-            src="${embedUrl}${autoplayParam}"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
-        </body>
-        </html>
-    """.trimIndent()
+    val videoId = embedUrl.substringAfterLast("/").substringBefore("?")
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
+            .fillMaxWidth()
             .aspectRatio(16f / 9f)
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-    ) {
-        AndroidView(
-            factory = { context ->
-                WebView(context).apply {
-                    webViewClient = WebViewClient()
-                    webChromeClient = WebChromeClient()
-                    settings.javaScriptEnabled = true
-                    settings.mediaPlaybackRequiresUserGesture = !autoPlay
-                    settings.domStorageEnabled = true
-                    settings.cacheMode = WebSettings.LOAD_DEFAULT
-                    loadDataWithBaseURL(
-                        "https://www.youtube.com",
-                        html,
-                        "text/html",
-                        "UTF-8",
-                        null
-                    )
-                }
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Black)
+            .clickable {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://www.youtube.com/watch?v=$videoId")
+                )
+                context.startActivity(intent)
             },
-            modifier = Modifier.fillMaxSize()
-        )
+        contentAlignment = Alignment.Center
+    ) {
+        // Play button circle
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(Color.White.copy(alpha = 0.2f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = "Play video",
+                tint = Color.White,
+                modifier = Modifier.size(40.dp)
+            )
+        }
     }
 }
