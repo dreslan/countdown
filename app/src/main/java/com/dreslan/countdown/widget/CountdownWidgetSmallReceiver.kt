@@ -1,0 +1,8 @@
+package com.dreslan.countdown.widget
+
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetReceiver
+
+class CountdownWidgetSmallReceiver : GlanceAppWidgetReceiver() {
+    override val glanceAppWidget: GlanceAppWidget = CountdownWidgetSmall()
+}
