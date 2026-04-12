@@ -22,5 +22,7 @@ data class Countdown(
     val videoUrl: String? = null,
     val createdAt: Instant = Instant.now(),
     @ColumnInfo(defaultValue = "0")
-    val showProgress: Boolean = false
+    val showProgress: Boolean = false,
+    @ColumnInfo(defaultValue = "")
+    val backgroundImagePath: String? = null
 )

@@ -24,6 +24,7 @@ data class EditState(
     val zeroMessage: String = "",
     val videoUrl: String = "",
     val showProgress: Boolean = false,
+    val backgroundImagePath: String? = null,
     val isEditing: Boolean = false,
     val editId: Long = 0,
     val videoUrlError: String? = null,
@@ -50,6 +51,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                 zeroMessage = countdown.zeroMessage ?: "",
                 videoUrl = countdown.videoUrl ?: "",
                 showProgress = countdown.showProgress,
+                backgroundImagePath = countdown.backgroundImagePath,
                 isEditing = true,
                 editId = countdown.id
             )
@@ -88,6 +90,10 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
         _state.value = _state.value.copy(showProgress = show)
     }
 
+    fun updateBackgroundImage(path: String?) {
+        _state.value = _state.value.copy(backgroundImagePath = path)
+    }
+
     fun save() {
         val s = _state.value
         if (s.title.isBlank()) {
@@ -121,7 +127,8 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                         theme = s.theme,
                         zeroMessage = s.zeroMessage.trim().ifBlank { null },
                         videoUrl = normalizedVideoUrl,
-                        showProgress = s.showProgress
+                        showProgress = s.showProgress,
+                        backgroundImagePath = s.backgroundImagePath
                     )
                 )
             } else {
@@ -133,7 +140,8 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                         theme = s.theme,
                         zeroMessage = s.zeroMessage.trim().ifBlank { null },
                         videoUrl = normalizedVideoUrl,
-                        showProgress = s.showProgress
+                        showProgress = s.showProgress,
+                        backgroundImagePath = s.backgroundImagePath
                     )
                 )
             }

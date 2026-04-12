@@ -1,11 +1,15 @@
 package com.dreslan.countdown.widget
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -15,9 +19,11 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
@@ -32,6 +38,8 @@ import com.dreslan.countdown.data.CountdownDatabase
 import com.dreslan.countdown.data.CountdownTheme
 import com.dreslan.countdown.ui.theme.CleanColors
 import com.dreslan.countdown.ui.theme.MedievalColors
+import java.time.Duration
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -43,6 +51,12 @@ class CountdownWidgetSmall : GlanceAppWidget() {
             CountdownDatabase.getInstance(context).countdownDao().getById(it)
         }
 
+        val bgBitmap = countdown?.backgroundImagePath?.let { path ->
+            if (path.isNotBlank()) {
+                try { BitmapFactory.decodeFile(path) } catch (_: Exception) { null }
+            } else null
+        }
+
         provideContent {
             if (countdown == null) {
                 DeletedWidgetContent()
@@ -52,11 +66,30 @@ class CountdownWidgetSmall : GlanceAppWidget() {
                 val dateFormatter = DateTimeFormatter.ofPattern("MMM d, h:mm a")
                 val formattedDate = zdt.format(dateFormatter)
 
+                val now = Instant.now()
+                val duration = Duration.between(now, countdown.targetDateTime)
+                val coarseText = if (duration.isNegative || duration.isZero) {
+                    countdown.zeroMessage ?: "Complete!"
+                } else {
+                    val days = duration.toDays()
+                    val hours = duration.toHours() % 24
+                    "${days}d ${hours}h"
+                }
+
+                val progress = if (countdown.showProgress) {
+                    val total = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                    val elapsed = now.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                    if (total > 0) (elapsed.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 1f
+                } else null
+
                 WidgetContent(
                     title = countdown.title,
+                    coarseCountdown = coarseText,
                     targetDate = formattedDate,
                     theme = countdown.theme,
-                    hasVideo = countdown.videoUrl != null
+                    hasVideo = countdown.videoUrl != null,
+                    bgBitmap = bgBitmap?.let { ImageProvider(it) },
+                    progress = progress
                 )
             }
         }
@@ -66,9 +99,12 @@ class CountdownWidgetSmall : GlanceAppWidget() {
 @Composable
 private fun WidgetContent(
     title: String,
+    coarseCountdown: String,
     targetDate: String,
     theme: CountdownTheme,
-    hasVideo: Boolean
+    hasVideo: Boolean,
+    bgBitmap: ImageProvider?,
+    progress: Float?
 ) {
     val bgColor = when (theme) {
         CountdownTheme.CLEAN -> CleanColors.backgroundMid
@@ -95,51 +131,120 @@ private fun WidgetContent(
         CountdownTheme.MEDIEVAL -> FontWeight.Bold
     }
 
+    val progressColor = when (theme) {
+        CountdownTheme.CLEAN -> Color(0xFF8B949E)
+        CountdownTheme.MEDIEVAL -> Color(0xFFD4A855)
+    }
+
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(bgColor)
             .clickable(actionStartActivity<MainActivity>())
-            .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        Row(
-            modifier = GlanceModifier.fillMaxSize(),
+        // Layer 1: Background — image or solid color
+        if (bgBitmap != null) {
+            Image(
+                provider = bgBitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = GlanceModifier.fillMaxSize()
+            )
+        } else {
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .background(bgColor)
+            ) {}
+        }
+
+        // Layer 2: Dark scrim overlay (only when image is present)
+        if (bgBitmap != null) {
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxSize()
+                    .background(Color(0xAA000000))
+            ) {}
+        }
+
+        // Layer 3: Content
+        Column(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = GlanceModifier.defaultWeight()) {
-                Text(
-                    text = "Time remaining until $title",
-                    style = TextStyle(
-                        color = ColorProvider(labelColor),
-                        fontSize = 11.sp,
-                        fontFamily = fontFamily
-                    ),
-                    maxLines = 1
-                )
-                Spacer(GlanceModifier.height(4.dp))
-                Text(
-                    text = targetDate,
-                    style = TextStyle(
-                        color = ColorProvider(textColor),
-                        fontSize = 18.sp,
-                        fontWeight = fontWeight,
-                        fontFamily = fontFamily
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = GlanceModifier.defaultWeight()) {
+                    // Line 1: "Countdown to <TITLE>"
+                    Text(
+                        text = "Countdown to $title",
+                        style = TextStyle(
+                            color = ColorProvider(labelColor),
+                            fontSize = 11.sp,
+                            fontFamily = fontFamily
+                        ),
+                        maxLines = 1
                     )
-                )
+                    Spacer(GlanceModifier.height(4.dp))
+                    // Line 2: coarse countdown + date
+                    Text(
+                        text = "$coarseCountdown \u00B7 $targetDate",
+                        style = TextStyle(
+                            color = ColorProvider(textColor),
+                            fontSize = 16.sp,
+                            fontWeight = fontWeight,
+                            fontFamily = fontFamily
+                        ),
+                        maxLines = 1
+                    )
+                    Spacer(GlanceModifier.height(2.dp))
+                    // Line 3: "Tap to view live"
+                    Text(
+                        text = "Tap to view live",
+                        style = TextStyle(
+                            color = ColorProvider(labelColor),
+                            fontSize = 10.sp,
+                            fontFamily = fontFamily
+                        ),
+                        maxLines = 1
+                    )
+                }
+
+                if (hasVideo) {
+                    Spacer(GlanceModifier.width(8.dp))
+                    Box(
+                        modifier = GlanceModifier.size(36.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "\u25B6",
+                            style = TextStyle(
+                                color = ColorProvider(playColor),
+                                fontSize = 20.sp
+                            )
+                        )
+                    }
+                }
             }
 
-            if (hasVideo) {
-                Spacer(GlanceModifier.width(8.dp))
+            // Progress bar at bottom
+            if (progress != null) {
+                Spacer(GlanceModifier.height(4.dp))
+                val progressWidthDp = (280 * progress).dp
                 Box(
-                    modifier = GlanceModifier.size(36.dp),
-                    contentAlignment = Alignment.Center
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .background(Color(0x33FFFFFF))
                 ) {
-                    Text(
-                        text = "\u25B6",
-                        style = TextStyle(
-                            color = ColorProvider(playColor),
-                            fontSize = 20.sp
-                        )
+                    Spacer(
+                        modifier = GlanceModifier
+                            .width(progressWidthDp)
+                            .height(3.dp)
+                            .background(progressColor)
                     )
                 }
             }
@@ -158,7 +263,7 @@ private fun DeletedWidgetContent() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Countdown deleted — tap to reconfigure",
+            text = "Countdown deleted \u2014 tap to reconfigure",
             style = TextStyle(
                 color = ColorProvider(CleanColors.labelText),
                 fontSize = 11.sp

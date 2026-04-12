@@ -1,5 +1,7 @@
 package com.dreslan.countdown.ui.edit
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,10 +48,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dreslan.countdown.data.CountdownTheme
+import com.dreslan.countdown.data.deleteImage
+import com.dreslan.countdown.data.saveImageToInternal
 import com.dreslan.countdown.ui.theme.CleanColors
+import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -75,6 +81,18 @@ fun EditCountdownScreen(
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
             onNavigateBack()
+        }
+    }
+
+    val context = LocalContext.current
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            val path = saveImageToInternal(context, uri)
+            if (path != null) {
+                viewModel.updateBackgroundImage(path)
+            }
         }
     }
 
@@ -268,6 +286,56 @@ fun EditCountdownScreen(
                         uncheckedThumbColor = CleanColors.unitText
                     )
                 )
+            }
+
+            // Background image
+            Column {
+                Text(
+                    text = "Widget Background Image",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = CleanColors.labelText
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val currentImagePath = state.backgroundImagePath
+                if (currentImagePath != null) {
+                    val fileName = File(currentImagePath).name
+                    Text(
+                        text = fileName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = CleanColors.countdownText
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = { imagePickerLauncher.launch("image/*") },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = CleanColors.countdownText
+                            )
+                        ) {
+                            Text("Change")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                state.backgroundImagePath?.let { deleteImage(it) }
+                                viewModel.updateBackgroundImage(null)
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = CleanColors.countdownText
+                            )
+                        ) {
+                            Text("Remove")
+                        }
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { imagePickerLauncher.launch("image/*") },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = CleanColors.countdownText
+                        )
+                    ) {
+                        Text("Choose Background Image")
+                    }
+                }
             }
 
             // Save button
