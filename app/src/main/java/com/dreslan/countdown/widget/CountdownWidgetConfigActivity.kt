@@ -86,11 +86,11 @@ class CountdownWidgetConfigActivity : ComponentActivity() {
                     CountdownWidgetSmall().update(this@CountdownWidgetConfigActivity, glanceId)
                 } catch (_: Exception) { }
             }
-        }
 
-        val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        setResult(RESULT_OK, result)
-        finish()
+            val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            setResult(RESULT_OK, result)
+            finish()
+        }
     }
 }
 

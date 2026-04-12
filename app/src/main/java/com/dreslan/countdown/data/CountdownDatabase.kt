@@ -24,7 +24,7 @@ class ThemeConverter {
     fun toTheme(name: String): CountdownTheme = CountdownTheme.valueOf(name)
 }
 
-@Database(entities = [Countdown::class], version = 1)
+@Database(entities = [Countdown::class], version = 1, exportSchema = false)
 @TypeConverters(InstantConverter::class, ThemeConverter::class)
 abstract class CountdownDatabase : RoomDatabase() {
     abstract fun countdownDao(): CountdownDao

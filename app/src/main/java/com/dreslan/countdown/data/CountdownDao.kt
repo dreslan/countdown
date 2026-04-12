@@ -18,6 +18,9 @@ interface CountdownDao {
     @Query("SELECT * FROM countdowns WHERE id = :id")
     suspend fun getById(id: Long): Countdown?
 
+    @Query("SELECT * FROM countdowns WHERE id = :id")
+    fun getByIdFlow(id: Long): Flow<Countdown?>
+
     @Insert
     suspend fun insert(countdown: Countdown): Long
 

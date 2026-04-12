@@ -21,15 +21,19 @@ class CountdownDetailViewModel(application: Application) : AndroidViewModel(appl
 
     fun loadCountdown(id: Long) {
         viewModelScope.launch {
-            _state.value = DetailState(countdown = dao.getById(id))
+            dao.getByIdFlow(id).collect { countdown ->
+                if (!_state.value.isDeleted) {
+                    _state.value = _state.value.copy(countdown = countdown)
+                }
+            }
         }
     }
 
     fun deleteCountdown() {
         viewModelScope.launch {
             val countdown = _state.value.countdown ?: return@launch
-            dao.delete(countdown)
             _state.value = _state.value.copy(isDeleted = true)
+            dao.delete(countdown)
         }
     }
 }
