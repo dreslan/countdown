@@ -74,21 +74,23 @@ class CountdownDetailViewModel(application: Application) : AndroidViewModel(appl
 
     fun exportMarkdown(): Intent {
         val s = _state.value
-        val text = ExportFormatter.toMarkdown(s.countdown!!, s.notes)
+        val countdown = s.countdown ?: return Intent(Intent.ACTION_SEND)
+        val text = ExportFormatter.toMarkdown(countdown, s.notes)
         return Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
-            putExtra(Intent.EXTRA_SUBJECT, s.countdown.title)
+            putExtra(Intent.EXTRA_SUBJECT, countdown.title)
         }
     }
 
     fun exportJson(): Intent {
         val s = _state.value
-        val text = ExportFormatter.toJson(s.countdown!!, s.notes)
+        val countdown = s.countdown ?: return Intent(Intent.ACTION_SEND)
+        val text = ExportFormatter.toJson(countdown, s.notes)
         return Intent(Intent.ACTION_SEND).apply {
             type = "application/json"
             putExtra(Intent.EXTRA_TEXT, text)
-            putExtra(Intent.EXTRA_SUBJECT, s.countdown.title)
+            putExtra(Intent.EXTRA_SUBJECT, countdown.title)
         }
     }
 }

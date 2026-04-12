@@ -1,6 +1,5 @@
 package com.dreslan.countdown.data
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -56,6 +55,12 @@ class ExportFormatterTest {
     }
 
     @Test
+    fun markdownContainsProgress() {
+        val md = ExportFormatter.toMarkdown(countdown, notes)
+        assertTrue(md.contains("**Progress:**"))
+    }
+
+    @Test
     fun jsonContainsTitle() {
         val json = ExportFormatter.toJson(countdown, notes)
         assertTrue(json.contains("\"title\": \"FREEDOM!\""))
@@ -72,5 +77,12 @@ class ExportFormatterTest {
     fun jsonHandlesEmptyNotes() {
         val json = ExportFormatter.toJson(countdown, emptyList())
         assertTrue(json.contains("\"notes\": []"))
+    }
+
+    @Test
+    fun jsonEscapesSpecialCharacters() {
+        val noteWithQuotes = Note(id = 3, countdownId = 1, text = "He said \"hello\"", createdAt = Instant.parse("2026-04-05T12:00:00Z"))
+        val json = ExportFormatter.toJson(countdown, listOf(noteWithQuotes))
+        assertTrue(json.contains("He said \\\"hello\\\""))
     }
 }

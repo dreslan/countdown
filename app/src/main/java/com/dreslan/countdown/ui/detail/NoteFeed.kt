@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,8 +34,8 @@ fun NoteFeed(
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("MMM d").withZone(timeZone)
 
-    LazyColumn(modifier = modifier) {
-        itemsIndexed(notes) { index, note ->
+    Column(modifier = modifier) {
+        notes.forEachIndexed { index, note ->
             val isLast = index == notes.lastIndex
             NoteRow(
                 note = note,
