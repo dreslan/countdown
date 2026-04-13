@@ -154,6 +154,23 @@ fun EditCountdownScreen(
                 )
             )
 
+            // Description
+            OutlinedTextField(
+                value = state.description,
+                onValueChange = viewModel::updateDescription,
+                label = { Text("Description (optional)", color = CleanColors.labelText) },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = CleanColors.countdownText,
+                    unfocusedTextColor = CleanColors.countdownText,
+                    focusedBorderColor = CleanColors.labelText,
+                    unfocusedBorderColor = CleanColors.unitText,
+                    cursorColor = CleanColors.countdownText,
+                )
+            )
+
             // Date + Time row
             Row(
                 modifier = Modifier.fillMaxWidth(),

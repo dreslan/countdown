@@ -23,6 +23,10 @@ object ExportFormatter {
 
         return buildString {
             appendLine("# ${countdown.title}")
+            if (!countdown.description.isNullOrBlank()) {
+                appendLine()
+                appendLine(countdown.description)
+            }
             appendLine()
             appendLine("**Target:** $targetFormatted")
             appendLine("**Started:** $startFormatted")
@@ -47,6 +51,9 @@ object ExportFormatter {
         return buildString {
             appendLine("{")
             appendLine("  \"title\": \"${countdown.title.escapeJson()}\",")
+            if (countdown.description != null) {
+                appendLine("  \"description\": \"${countdown.description.escapeJson()}\",")
+            }
             appendLine("  \"targetDateTime\": \"${countdown.targetDateTime.atZone(zone)}\",")
             appendLine("  \"startDate\": \"${origin.atZone(zone)}\",")
             appendLine("  \"createdAt\": \"${countdown.createdAt.atZone(zone)}\",")

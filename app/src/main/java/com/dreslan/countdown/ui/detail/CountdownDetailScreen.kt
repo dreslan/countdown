@@ -249,6 +249,15 @@ fun CountdownDetailScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    if (!countdown.description.isNullOrBlank()) {
+                        Text(
+                            text = countdown.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
                     val zone = ZoneId.of(countdown.timeZone)
                     val zdt = countdown.targetDateTime.atZone(zone)
                     val dateFormatter = DateTimeFormatter.ofPattern("MMMM d, h:mm a")

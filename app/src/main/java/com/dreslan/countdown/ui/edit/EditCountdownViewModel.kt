@@ -17,6 +17,7 @@ import java.time.ZoneId
 
 data class EditState(
     val title: String = "",
+    val description: String = "",
     val date: LocalDate = LocalDate.now().plusDays(1),
     val time: LocalTime = LocalTime.NOON,
     val timeZone: ZoneId = ZoneId.systemDefault(),
@@ -47,6 +48,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
             val startZdt = (countdown.startDate ?: countdown.createdAt).atZone(zone)
             _state.value = EditState(
                 title = countdown.title,
+                description = countdown.description ?: "",
                 date = zdt.toLocalDate(),
                 time = zdt.toLocalTime(),
                 timeZone = zone,
@@ -65,6 +67,10 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
 
     fun updateTitle(title: String) {
         _state.value = _state.value.copy(title = title, titleError = null)
+    }
+
+    fun updateDescription(description: String) {
+        _state.value = _state.value.copy(description = description)
     }
 
     fun updateDate(date: LocalDate) {
@@ -140,6 +146,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                 dao.update(
                     existing.copy(
                         title = s.title.trim(),
+                        description = s.description.trim().ifBlank { null },
                         targetDateTime = targetInstant,
                         timeZone = s.timeZone.id,
                         theme = s.theme,
@@ -154,6 +161,7 @@ class EditCountdownViewModel(application: Application) : AndroidViewModel(applic
                 dao.insert(
                     Countdown(
                         title = s.title.trim(),
+                        description = s.description.trim().ifBlank { null },
                         targetDateTime = targetInstant,
                         timeZone = s.timeZone.id,
                         theme = s.theme,

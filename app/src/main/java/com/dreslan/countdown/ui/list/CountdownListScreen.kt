@@ -175,6 +175,15 @@ private fun CountdownCard(countdown: Countdown, noteCount: Int, onClick: () -> U
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+                if (!countdown.description.isNullOrBlank()) {
+                    Text(
+                        text = countdown.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
                 CountdownDisplay(
                     targetDateTime = countdown.targetDateTime,
                     zeroMessage = countdown.zeroMessage,

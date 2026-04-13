@@ -26,7 +26,7 @@ class ThemeConverter {
     fun toTheme(name: String): CountdownTheme = CountdownTheme.valueOf(name)
 }
 
-@Database(entities = [Countdown::class, Note::class], version = 5, exportSchema = false)
+@Database(entities = [Countdown::class, Note::class], version = 6, exportSchema = false)
 @TypeConverters(InstantConverter::class, ThemeConverter::class)
 abstract class CountdownDatabase : RoomDatabase() {
     abstract fun countdownDao(): CountdownDao
@@ -70,13 +70,19 @@ abstract class CountdownDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE countdowns ADD COLUMN description TEXT DEFAULT NULL")
+            }
+        }
+
         fun getInstance(context: Context): CountdownDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     CountdownDatabase::class.java,
                     "countdown_database"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build().also { INSTANCE = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build().also { INSTANCE = it }
             }
         }
     }
