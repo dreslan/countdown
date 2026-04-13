@@ -79,8 +79,9 @@ class CountdownWidgetSmall : GlanceAppWidget() {
                 }
 
                 val progress = if (countdown.showProgress) {
-                    val total = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
-                    val elapsed = now.toEpochMilli() - countdown.createdAt.toEpochMilli()
+                    val origin = countdown.startDate ?: countdown.createdAt
+                    val total = countdown.targetDateTime.toEpochMilli() - origin.toEpochMilli()
+                    val elapsed = now.toEpochMilli() - origin.toEpochMilli()
                     if (total > 0) (elapsed.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 1f
                 } else null
 
@@ -195,15 +196,15 @@ private fun WidgetContent(
                 }
 
                 // Right: action buttons
-                Spacer(GlanceModifier.width(8.dp))
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Spacer(GlanceModifier.width(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Play button — opens YouTube directly
                     if (videoUrl != null) {
                         Box(
                             modifier = GlanceModifier
-                                .size(44.dp)
+                                .size(48.dp)
                                 .clickable(
                                     actionRunCallback<PlayVideoAction>(
                                         androidx.glance.action.actionParametersOf(
@@ -217,7 +218,7 @@ private fun WidgetContent(
                                 text = "\u25B6",
                                 style = TextStyle(
                                     color = ColorProvider(playColor),
-                                    fontSize = 26.sp
+                                    fontSize = 28.sp
                                 )
                             )
                         }
@@ -225,7 +226,7 @@ private fun WidgetContent(
                     // Refresh button
                     Box(
                         modifier = GlanceModifier
-                            .size(28.dp)
+                            .size(40.dp)
                             .clickable(actionRunCallback<RefreshAction>()),
                         contentAlignment = Alignment.Center
                     ) {
@@ -233,7 +234,7 @@ private fun WidgetContent(
                             text = "\u21BB",
                             style = TextStyle(
                                 color = ColorProvider(labelColor),
-                                fontSize = 16.sp
+                                fontSize = 22.sp
                             )
                         )
                     }

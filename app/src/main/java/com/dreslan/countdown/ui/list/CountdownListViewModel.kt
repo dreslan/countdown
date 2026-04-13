@@ -3,10 +3,12 @@ package com.dreslan.countdown.ui.list
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.dreslan.countdown.data.CountdownDatabase
-import kotlinx.coroutines.flow.Flow
 import com.dreslan.countdown.data.Countdown
+import kotlinx.coroutines.flow.Flow
 
 class CountdownListViewModel(application: Application) : AndroidViewModel(application) {
-    private val dao = CountdownDatabase.getInstance(application).countdownDao()
-    val countdowns: Flow<List<Countdown>> = dao.getAll()
+    private val db = CountdownDatabase.getInstance(application)
+    val countdowns: Flow<List<Countdown>> = db.countdownDao().getAll()
+
+    fun getNoteCount(countdownId: Long): Flow<Int> = db.noteDao().getNoteCountForCountdown(countdownId)
 }

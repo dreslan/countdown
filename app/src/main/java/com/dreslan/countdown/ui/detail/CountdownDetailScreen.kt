@@ -1,29 +1,27 @@
 package com.dreslan.countdown.ui.detail
 
-import android.content.Intent
-import android.net.Uri
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,17 +39,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import com.dreslan.countdown.data.CountdownTheme
+import com.dreslan.countdown.data.Note
 import com.dreslan.countdown.ui.components.CountdownDisplay
 import com.dreslan.countdown.ui.theme.CleanColors
 import com.dreslan.countdown.ui.theme.CountdownItemTheme
@@ -71,6 +67,10 @@ fun CountdownDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showNoteDialog by remember { mutableStateOf(false) }
+    var editingNote by remember { mutableStateOf<Note?>(null) }
+    var showExportMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LaunchedEffect(countdownId) {
         viewModel.loadCountdown(countdownId)
@@ -115,6 +115,24 @@ fun CountdownDetailScreen(
     }
     val (topBarBg, topBarContent, topBarAction) = topBarColors
 
+    val fabContainerColor = when (countdown.theme) {
+        CountdownTheme.CLEAN -> CleanColors.labelText
+        CountdownTheme.MEDIEVAL -> MedievalColors.labelText
+    }
+
+    val retroTvBodyColor = when (countdown.theme) {
+        CountdownTheme.CLEAN -> CleanColors.backgroundEnd
+        CountdownTheme.MEDIEVAL -> MedievalColors.backgroundEnd
+    }
+    val retroTvBorderColor = when (countdown.theme) {
+        CountdownTheme.CLEAN -> CleanColors.unitText
+        CountdownTheme.MEDIEVAL -> MedievalColors.unitText
+    }
+    val retroTvPlayIconColor = when (countdown.theme) {
+        CountdownTheme.CLEAN -> CleanColors.playButton
+        CountdownTheme.MEDIEVAL -> MedievalColors.playButton
+    }
+
     CountdownItemTheme(theme = countdown.theme) {
         Scaffold(
             topBar = {
@@ -144,11 +162,50 @@ fun CountdownDetailScreen(
                                 tint = topBarAction
                             )
                         }
+                        Box {
+                                IconButton(onClick = { showExportMenu = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "More options",
+                                        tint = topBarAction
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = showExportMenu,
+                                    onDismissRequest = { showExportMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Export as Markdown") },
+                                        onClick = {
+                                            showExportMenu = false
+                                            context.startActivity(viewModel.exportMarkdown())
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Export as JSON") },
+                                        onClick = {
+                                            showExportMenu = false
+                                            context.startActivity(viewModel.exportJson())
+                                        }
+                                    )
+                                }
+                            }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = topBarBg
                     )
                 )
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = {
+                        editingNote = null
+                        showNoteDialog = true
+                    },
+                    containerColor = fabContainerColor
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add note")
+                }
             },
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
@@ -164,7 +221,6 @@ fun CountdownDetailScreen(
                     .background(backgroundBrush)
                     .padding(padding)
             ) {
-                // Background image if set
                 if (bgBitmap != null) {
                     Image(
                         bitmap = bgBitmap,
@@ -211,21 +267,46 @@ fun CountdownDetailScreen(
                     )
 
                     if (countdown.showProgress) {
-                        val totalDuration = countdown.targetDateTime.toEpochMilli() - countdown.createdAt.toEpochMilli()
-                        val elapsed = Instant.now().toEpochMilli() - countdown.createdAt.toEpochMilli()
-                        val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surface
+                        val origin = countdown.startDate ?: countdown.createdAt
+                        val startLabel = origin.atZone(zone).format(DateTimeFormatter.ofPattern("MMM d"))
+                        val targetLabel = countdown.targetDateTime.atZone(zone).format(DateTimeFormatter.ofPattern("MMM d"))
+                        TimelineBar(
+                            startDate = origin,
+                            targetDate = countdown.targetDateTime,
+                            noteTimestamps = state.notes.map { it.createdAt },
+                            progressColor = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surface,
+                            dotColor = MaterialTheme.colorScheme.primary,
+                            labelColor = MaterialTheme.colorScheme.onBackground,
+                            startLabel = startLabel,
+                            targetLabel = targetLabel,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    if (state.notes.isNotEmpty()) {
+                        NoteFeed(
+                            notes = state.notes,
+                            timeZone = zone,
+                            dotColor = MaterialTheme.colorScheme.primary,
+                            lineColor = MaterialTheme.colorScheme.surface,
+                            dateColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                            textColor = MaterialTheme.colorScheme.onBackground,
+                            onNoteClick = { note ->
+                                editingNote = note
+                                showNoteDialog = true
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
                     val videoUrl = countdown.videoUrl
                     if (!videoUrl.isNullOrBlank()) {
-                        VideoPlayButton(
+                        RetroTvButton(
                             embedUrl = videoUrl,
+                            bodyColor = retroTvBodyColor,
+                            borderColor = retroTvBorderColor,
+                            playIconColor = retroTvPlayIconColor,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -256,44 +337,32 @@ fun CountdownDetailScreen(
             }
         )
     }
-}
 
-@Composable
-private fun VideoPlayButton(
-    embedUrl: String,
-    modifier: Modifier = Modifier
-) {
-    val videoId = embedUrl.substringAfterLast("/").substringBefore("?")
-    val context = LocalContext.current
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(16f / 9f)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.Black)
-            .clickable {
-                val intent = Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://www.youtube.com/watch?v=$videoId")
-                )
-                context.startActivity(intent)
+    if (showNoteDialog) {
+        NoteDialog(
+            existingNote = editingNote,
+            timeZone = ZoneId.of(countdown.timeZone),
+            onSave = { text, createdAt ->
+                val existing = editingNote
+                if (existing != null) {
+                    viewModel.updateNote(existing, text, createdAt)
+                } else {
+                    viewModel.addNote(text, createdAt)
+                }
+                showNoteDialog = false
+                editingNote = null
             },
-        contentAlignment = Alignment.Center
-    ) {
-        // Play button circle
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .background(Color.White.copy(alpha = 0.2f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "Play video",
-                tint = Color.White,
-                modifier = Modifier.size(40.dp)
-            )
-        }
+            onDelete = editingNote?.let { note ->
+                {
+                    viewModel.deleteNote(note.id)
+                    showNoteDialog = false
+                    editingNote = null
+                }
+            },
+            onDismiss = {
+                showNoteDialog = false
+                editingNote = null
+            }
+        )
     }
 }
