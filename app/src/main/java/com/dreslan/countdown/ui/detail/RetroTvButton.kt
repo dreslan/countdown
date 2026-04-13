@@ -48,7 +48,7 @@ fun RetroTvButton(
     ) {
         Box(
             modifier = Modifier
-                .width(200.dp)
+                .width(260.dp)
                 .clickable {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
@@ -61,11 +61,11 @@ fun RetroTvButton(
                 // Antennas
                 Canvas(
                     modifier = Modifier
-                        .width(200.dp)
-                        .height(30.dp)
+                        .width(260.dp)
+                        .height(35.dp)
                 ) {
                     val centerX = size.width / 2
-                    val antennaSpread = 50.dp.toPx()
+                    val antennaSpread = 65.dp.toPx()
 
                     drawLine(
                         color = borderColor,
@@ -95,17 +95,17 @@ fun RetroTvButton(
                 // TV body
                 Box(
                     modifier = Modifier
-                        .width(180.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .width(230.dp)
+                        .clip(RoundedCornerShape(14.dp))
                         .background(bodyColor)
-                        .padding(8.dp)
+                        .padding(10.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         // Screen
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(70.dp)
+                                .height(100.dp)
                                 .clip(RoundedCornerShape(6.dp))
                                 .background(screenColor)
                                 .drawBehind {
@@ -143,7 +143,7 @@ fun RetroTvButton(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .size(48.dp)
                                     .background(Color.White.copy(alpha = 0.1f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -151,7 +151,7 @@ fun RetroTvButton(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = "Play video",
                                     tint = playIconColor,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(32.dp)
                                 )
                             }
                         }
@@ -164,29 +164,29 @@ fun RetroTvButton(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(modifier = Modifier.size(8.dp).background(borderColor, CircleShape))
-                            Box(modifier = Modifier.width(12.dp))
-                            Box(modifier = Modifier.size(8.dp).background(borderColor, CircleShape))
+                            Box(modifier = Modifier.size(10.dp).background(borderColor, CircleShape))
+                            Box(modifier = Modifier.width(16.dp))
+                            Box(modifier = Modifier.size(10.dp).background(borderColor, CircleShape))
                         }
                     }
                 }
 
                 // Pedestal feet
                 Row(
-                    modifier = Modifier.width(180.dp),
-                    horizontalArrangement = Arrangement.spacedBy(80.dp, Alignment.CenterHorizontally)
+                    modifier = Modifier.width(230.dp),
+                    horizontalArrangement = Arrangement.spacedBy(110.dp, Alignment.CenterHorizontally)
                 ) {
                     Box(
                         modifier = Modifier
-                            .width(24.dp)
-                            .height(8.dp)
+                            .width(28.dp)
+                            .height(10.dp)
                             .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
                             .background(bodyColor)
                     )
                     Box(
                         modifier = Modifier
-                            .width(24.dp)
-                            .height(8.dp)
+                            .width(28.dp)
+                            .height(10.dp)
                             .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
                             .background(bodyColor)
                     )
