@@ -4,12 +4,14 @@ A multi-countdown Android app with themed homescreen widgets. Create countdowns 
 
 ## Features
 
-- **Multiple countdowns** — create, edit, delete countdowns with custom titles and target dates
+- **Multiple countdowns** — create, edit, delete countdowns with custom titles, descriptions, and target dates
 - **Two themes** — Clean (dark/minimal) and Medieval (warm browns/gold/serif)
 - **Homescreen widget** — 4x1 widget showing countdown name, coarse time remaining (days/hours/minutes), and target date
 - **Background images** — pick an image from your gallery for the widget and in-app display
 - **YouTube integration** — link a YouTube video to any countdown, play it from the widget or detail screen
-- **Progress bar** — optional visual progress from creation date to target date
+- **Progress bar** — optional visual progress from start date to target date
+- **Timeline notes** — attach dated notes to any countdown, displayed as a chronological feed
+- **Export** — share countdowns as Markdown or JSON
 - **Tap to refresh** — widget refresh button updates the countdown instantly
 
 ## Tech Stack

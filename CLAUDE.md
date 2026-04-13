@@ -32,7 +32,7 @@ JAVA_HOME=/usr/local/opt/openjdk@17 ./gradlew verifyPaparazziDebug   # verify ag
 ## Key Files
 
 - `data/Countdown.kt` — Room entity + CountdownTheme enum
-- `data/CountdownDatabase.kt` — Room DB with migrations (currently v3)
+- `data/CountdownDatabase.kt` — Room DB with migrations (currently v6)
 - `widget/CountdownWidgetSmall.kt` — Glance widget rendering
 - `ui/theme/Color.kt` — CleanColors and MedievalColors constants
 - `deploy.py` — CLI tool for build/test/deploy (run with `uv run`)
