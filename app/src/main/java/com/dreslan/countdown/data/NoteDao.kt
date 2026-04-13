@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
-    @Query("SELECT * FROM notes WHERE countdownId = :countdownId ORDER BY createdAt DESC")
+    @Query("SELECT * FROM notes WHERE countdownId = :countdownId ORDER BY createdAt ASC")
     fun getNotesForCountdown(countdownId: Long): Flow<List<Note>>
 
     @Query("SELECT COUNT(*) FROM notes WHERE countdownId = :countdownId")
