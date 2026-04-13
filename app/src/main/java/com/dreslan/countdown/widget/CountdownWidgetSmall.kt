@@ -45,6 +45,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class CountdownWidgetSmall : GlanceAppWidget() {
+    override val sizeMode = androidx.glance.appwidget.SizeMode.Exact
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
         val countdownId = getWidgetCountdownId(context, appWidgetId)
@@ -244,7 +246,10 @@ private fun WidgetContent(
             // Progress bar at bottom
             if (progress != null) {
                 Spacer(GlanceModifier.height(4.dp))
-                val progressWidthDp = (280 * progress).dp
+                val widgetWidth = androidx.glance.LocalSize.current.width
+                val horizontalPadding = 16.dp * 2
+                val trackWidth = widgetWidth - horizontalPadding
+                val fillWidth = trackWidth * progress
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -253,7 +258,7 @@ private fun WidgetContent(
                 ) {
                     Spacer(
                         modifier = GlanceModifier
-                            .width(progressWidthDp)
+                            .width(fillWidth)
                             .height(3.dp)
                             .background(progressColor)
                     )
